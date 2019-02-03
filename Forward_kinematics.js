@@ -1,6 +1,6 @@
 var Link_list = [];
 var name2link = {};
-var link_num = 2;
+var link_num = 3;
 
 Make_world();
 var buf_link_name = "world_link";
@@ -8,7 +8,7 @@ for(let i=0; i < link_num; i++){
     let link_name = "link_"+i;
     let link_length = [[0],[1],[0]];
     let axis = [[0],[0],[1]];
-    Make_link(link_name,buf_link_name,link_length,axis,0);
+    Make_link(link_name,buf_link_name,link_length,axis,20);
     name2link[link_name] = Link_list[i+1];
     buf_link_name = link_name;
 }
@@ -16,6 +16,8 @@ console.log(Link_list);
 ForwardKinematics(Link_list);
 console.log(Link_list);
 console.log(name2link);
+Show_arm();
+
 
 function Make_world(){
     let World_link = {link_name:"world_link",pos:[[0],[0],[0]],rot:[[1,0,0],[0,1,0],[0,0,1]]};
@@ -95,4 +97,66 @@ function ForwardKinematics(link_data){
         link_data[i]["rot"] = Matrix_multi(link_data[i-1].rot,Rodrigues(link_data[i].axis,link_data[i].angle));
     }
 
+}
+
+function Show_arm(){
+ window.addEventListener('load', init);        
+ function init() {
+  console.log("start")
+  let path_data;        
+  //サイズを指定
+  const width = 900;
+  const height = 600;
+        
+  // レンダラーを作成
+  const renderer = new THREE.WebGLRenderer({
+      canvas: document.querySelector('#myCanvas')
+  });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(width, height);
+        
+  // シーンを作成
+  const scene = new THREE.Scene();
+  //背景色を白に
+  scene.background = new THREE.Color( 0xffffff);
+  // カメラを作成
+  const camera = new THREE.PerspectiveCamera(45, width / height);
+  //camera.position.set(0, 0, +1000);
+  camera.position.set(0, 0, +10);
+  
+  // カメラコントローラを作成
+  //const controls = new THREE.OrbitControls(camera);
+  // 滑らかにカメラコントローラを制御する
+  
+    //座標軸を表示
+  //let axis = new THREE.AxesHelper(1000);
+  //scene.add(axis);
+  
+  //gridを表示
+  //縦、横のグリッドの数 : size/(size/step)
+  //1グリッドのサイズ : size/step = voxelsize
+  //今回の場合 : グリッド数 1000/(100/1000)=100個
+  
+  let geometry = new THREE.Geometry();
+  
+  //let material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
+  //let geometry = new THREE.BoxGeometry(40,40,20);//大きさを10倍に      
+  
+  tick();      
+  // 毎フレーム時に実行されるループイベントです
+  function tick() {
+    for(let i=0; i < Link_list.length; i++){
+        geometry.vertices.push(new THREE.Vector3(Link_list[i].pos[0][0],Link_list[i].pos[1][0],Link_list[i].pos[2][0])); 
+        let joint_material = new THREE.MeshBasicMaterial( { color: 0xeeee00 } );
+        let joint_geometry = new THREE.CircleGeometry( 0.1, 500);
+        let Joint = new THREE.Mesh( joint_geometry, joint_material );
+        Joint.position.set(Link_list[i].pos[0][0],Link_list[i].pos[1][0],Link_list[i].pos[2][0])
+        scene.add( Joint );
+        let line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color:0x990000} ) );
+        scene.add( line );
+      }
+      renderer.render(scene, camera); // レンダリング  
+      requestAnimationFrame(tick);
+  }
+  }
 }
