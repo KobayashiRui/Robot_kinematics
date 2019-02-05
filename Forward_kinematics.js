@@ -1,6 +1,7 @@
 var Link_list = [];
 var name2link = {};
-var link_num = 3;
+var link_num = 5;
+var flag = 0;
 
 Make_world();
 var buf_link_name = "world_link";
@@ -11,6 +12,7 @@ for(let i=0; i < link_num; i++){
     Make_link(link_name,buf_link_name,link_length,axis,20);
     name2link[link_name] = Link_list[i+1];
     buf_link_name = link_name;
+    Make_Controler(link_name);
 }
 console.log(Link_list);
 ForwardKinematics(Link_list);
@@ -116,7 +118,7 @@ function Show_arm(){
   renderer.setSize(width, height);
         
   // シーンを作成
-  const scene = new THREE.Scene();
+  let scene = new THREE.Scene();
   //背景色を白に
   scene.background = new THREE.Color( 0xffffff);
   // カメラを作成
@@ -137,26 +139,61 @@ function Show_arm(){
   //1グリッドのサイズ : size/step = voxelsize
   //今回の場合 : グリッド数 1000/(100/1000)=100個
   
-  let geometry = new THREE.Geometry();
   
   //let material = new THREE.MeshBasicMaterial( {color: 0xFF0000} );
   //let geometry = new THREE.BoxGeometry(40,40,20);//大きさを10倍に      
-  
   tick();      
   // 毎フレーム時に実行されるループイベントです
   function tick() {
-    for(let i=0; i < Link_list.length; i++){
-        geometry.vertices.push(new THREE.Vector3(Link_list[i].pos[0][0],Link_list[i].pos[1][0],Link_list[i].pos[2][0])); 
+    if(flag == 0){
+        console.log(scene.children);
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color( 0xffffff);
+        //for(let i=0; i < scene.children.length; i++){
+        //    scene.remove(scene.children[i]);
+        //    //scene.children[i].material.dispose();
+        //    //scene.children[i].geometry.dispose();
+        //    //scene.remove(scene.children[i]);
+        //}
+        console.log("clean")
+        console.log(scene.children);
         let joint_material = new THREE.MeshBasicMaterial( { color: 0xeeee00 } );
         let joint_geometry = new THREE.CircleGeometry( 0.1, 500);
-        let Joint = new THREE.Mesh( joint_geometry, joint_material );
-        Joint.position.set(Link_list[i].pos[0][0],Link_list[i].pos[1][0],Link_list[i].pos[2][0])
-        scene.add( Joint );
-        let line = new THREE.Line( geometry, new THREE.LineBasicMaterial( { color:0x990000} ) );
-        scene.add( line );
-      }
+        let geometry = new THREE.Geometry();
+        let material = new THREE.LineBasicMaterial( { color:0x990000})
+        for(let i=0; i < Link_list.length; i++){
+            geometry.vertices.push(new THREE.Vector3(Link_list[i].pos[0][0],Link_list[i].pos[1][0],Link_list[i].pos[2][0])); 
+            let Joint = new THREE.Mesh(joint_geometry, joint_material);
+            Joint.position.set(Link_list[i].pos[0][0],Link_list[i].pos[1][0],Link_list[i].pos[2][0])
+            scene.add( Joint );
+            let line = new THREE.Line(geometry, material);
+            scene.add( line );
+        }
+        flag = 1;
+    }
       renderer.render(scene, camera); // レンダリング  
       requestAnimationFrame(tick);
   }
   }
+}
+
+function Controller(obj,name){
+    let angle_data = parseFloat(obj.value);
+    console.log(name + ":" + angle_data);
+    name2link[name].angle = angle_data;
+    ForwardKinematics(Link_list);
+    flag = 0;
+    
+}
+
+function Make_Controler(name){
+    let elem = document.createElement('input');
+    let base = document.getElementById("contro");
+    let string_data = "Controller(this,'"+ name + "')"
+    elem.setAttribute("type","range");
+    elem.setAttribute("min","-180");
+    elem.setAttribute("max","180");
+    elem.setAttribute("value","0");
+    elem.setAttribute("onInput",string_data);
+    base.appendChild(elem);
 }
