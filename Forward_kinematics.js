@@ -12,7 +12,9 @@ for(let i=0; i < link_num; i++){
     Make_link(link_name,buf_link_name,link_length,axis,20);
     name2link[link_name] = Link_list[i+1];
     buf_link_name = link_name;
-    Make_Controler(link_name);
+    if(i != link_num-1){
+      Make_Controler(link_name);
+    }
 }
 console.log(Link_list);
 ForwardKinematics(Link_list);
