@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <title>numjsの動作確認</title>
+        <meta charset="utf-8">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/100/three.min.js"></script>
+        <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+        <!--<script src="https://cdn.jsdelivr.net/gh/nicolaspanel/numjs@0.15.1/dist/numjs.min.js"></script> -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/5.4.2/math.js"></script>
+    </head>
+    <body>
+        <h1>mathjsの動作</h1>
+        <script>
+        var a = math.matrix([[0,1],[2,3]]);
+        var b = math.inv(a);
+        console.log(a);
+        console.log(b.valueOf());
+        </script>
+    </body>
+</html>

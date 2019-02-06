@@ -16,10 +16,12 @@ for(let i=0; i < link_num; i++){
       Make_Controler(link_name);
     }
 }
-console.log(Link_list);
+
+//console.log(Link_list);
 ForwardKinematics(Link_list);
-console.log(Link_list);
-console.log(name2link);
+//console.log(Link_list);
+//console.log(name2link);
+console.log("hhhhhh")
 Show_arm();
 
 
@@ -104,7 +106,10 @@ function ForwardKinematics(link_data){
 }
 
 function Show_arm(){
- window.addEventListener('load', init);        
+ console.log("########"); 
+ //window.addEventListener('load', init);
+ init()
+ //document.addEventListener('load', init);
  function init() {
   console.log("start")
   let path_data;        
