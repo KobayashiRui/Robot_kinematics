@@ -1,4 +1,4 @@
-<!DOCTYPE html>
++<!DOCTYPE html>
 <html lang="ja">
     <head>
         <title>numjsの動作確認</title>
@@ -12,9 +12,21 @@
         <h1>mathjsの動作</h1>
         <script>
         var a = math.matrix([[0,1],[2,3]]);
+        var aa = math.matrix([1,2]);
         var b = math.inv(a);
-        console.log(a);
-        console.log(b.valueOf());
+        var c = math.matrix([[0,1,2],[3,4,5],[6,7,8]]);
+        var d = math.matrix([[1],[2],[3],[4],[5],[6]]);
+        console.log(JSON.stringify(a));
+        a.valueOf()[0][0] =19;
+        console.log(JSON.stringify(a));
+        console.log(math.norm(math.reshape(d,[6])));
+        console.log(JSON.stringify(d));
+        console.log("calculate a")
+        console.log(JSON.stringify(a.valueOf()));
+        console.log(JSON.stringify(b.valueOf()));
+        c = math.subset(c, math.index([0,1,2],1),[[9],[10],[11]]);
+        console.log(JSON.stringify(c.valueOf()));
+        console.log(Number.EPSILON)
         </script>
     </body>
 </html>
