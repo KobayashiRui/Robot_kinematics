@@ -1,9 +1,9 @@
 var Link_list = [];
 var name2link = {};
-var link_num = 3;
+var link_num = 6;
 var flag = 0;
-var lambda = 0.2;
-var Make_link_list = [[[0],[0],[1]],[[0],[1],[0]],[[0],[1],[0]]]
+var lambda = 0.1;
+var Make_link_list = [[[0],[0],[1]],[[0],[1],[0]],[[0],[1],[0]],[[0],[0],[1]],[[0],[1],[0]],[[0],[0],[1]]]
 
 Make_world();
 var buf_link_name = "world_link";
@@ -11,16 +11,27 @@ for(let i=0; i < link_num; i++){
     let link_name = "link_"+i;
     let link_length = [[0],[0],[1]];
     let axis = Make_link_list[i];//[[0],[0],[1]];
-    Make_link(link_name,buf_link_name,link_length,axis,20);
+    if(i == 1 || i == 2){
+        Make_link(link_name,buf_link_name,link_length,axis,45);
+    }else{
+        Make_link(link_name,buf_link_name,link_length,axis,0.1);
+    }
     name2link[link_name] = Link_list[i+1];
    // Make_Controler(link_name);
     buf_link_name = link_name;
 }
 
-var target_rot_data = Rpy2rot(0,40,0);
-var Target_data = {pos:[[1.5],[1.5],[2]],rot:target_rot_data};
+ForwardKinematics(Link_list);
 
-for(let I = 0; I < 1000; I++){
+//var target_rot_data = Link_list[Link_list.length-1].rot;
+var target_rot_data = Rpy2rot(0,0,0)
+var target_pos_data = Link_list[Link_list.length-1].pos;
+target_pos_data[0][0] = target_pos_data[0][0]+2;
+target_pos_data[1][0] = 0;
+var Target_data = {pos:target_pos_data,rot:target_rot_data};
+console.log(Target_data);
+
+for(let I = 0; I < 200; I++){
 console.log("Number:"+I);
 ForwardKinematics(Link_list);
 //console.log(JSON.stringify(Link_list));
@@ -31,21 +42,40 @@ var Error_data = CalcVWerr(Target_data,Link_list[Link_list.length-1]);
 console.log("end??");
 var Error_norm = Error_data.valueOf();
 console.log(math.norm(math.reshape(Error_norm,[6])));
-if(math.norm(math.reshape(Error_norm,[6])) < 0.00001){
+if(math.norm(math.reshape(Error_norm,[6])) < 0.001){
   console.log("end");
   break;
 }
 console.log(JSON.stringify(Error_data));
-console.log("ヤコビの逆行列")
-if(Jaco.length != Jaco[0].length){
-var Jaco_inv = pinv(Jaco);  
-}
-//console.log(JSON.stringify(Jaco_inv.valueOf()));
-console.log("error");
-console.log(JSON.stringify(Error_data.valueOf()));
-//console.log(JSON.stringify(math.usolve(Jaco,Error_data)));
-var dq = math.multiply(math.multiply(Jaco_inv,Error_data),lambda).valueOf();
-//console.log(JSON.stringify(dq));
+//console.log("ヤコビの逆行列")
+//if(Jaco.length != Jaco[0].length){
+//    var Jaco_inv = pinv(Jaco);  
+//}else{
+//    var Jaco_inv = math.inv(Jaco)
+//}
+//重み付きの誤差
+//var W_buf = math.identity(6);
+//var W = math.identity(6);
+//W = math.multiply(W,3);
+//W = math.subset(W, math.index([3,4,5],[0,1,2,3,4,5]),[[0,0,0,1,0,0],[0,0,0,0,1,0],[0,0,0,0,0,1]]);
+//console.log(W);
+//var gk = math.multiply(math.multiply(math.transpose(Jaco),W),Error_data);
+//var E = math.multiply(math.multiply(math.transpose(Error_data),W),Error_data);
+////最急降下法
+//console.log("最急降下");
+//var Eq = math.multiply(E, 0.5);
+//console.log(E);
+//console.log(Eq);
+//var HK_base = math.multiply(math.transpose(gk),gk);
+//var HK = math.multiply(math.multiply(Eq,-1),HK_base);
+//
+//console.log(math.multiply(gk,math.multiply(HK,-1)));
+//console.log(gk);
+//console.log(JSON.stringify(Error_data.valueOf()));
+var dq = math.multiply(math.lusolve(Jaco,Error_data),lambda).valueOf();
+//var dq = math.multiply(gk,math.multiply(HK,-1)).valueOf();
+//var dq = math.multiply(Error_data,lambda).valueOf();
+console.log(dq);
 for(let i = 1; i < Link_list.length; i++){
   Link_list[i].angle = Link_list[i].angle + (dq[i-1][0]*180/Math.PI);
 }
@@ -61,7 +91,7 @@ Show_arm()
 
 //原点位置の作成
 function Make_world(){
-    let World_link = {link_name:"world_link",pos:[[0],[0],[0.5]],rot:[[1,0,0],[0,1,0],[0,0,1]]};
+    let World_link = {link_name:"world_link",pos:[[0],[0],[0]],rot:[[1,0,0],[0,1,0],[0,0,1]]};
     Link_list.push(World_link);   
 }
 
@@ -142,6 +172,8 @@ function CalcJacobian(link_data){
     let cross_data = math.cross(a , pos_diff);
     //console.log(JSON.stringify(link_rot.valueOf()));
     //console.log(JSON.stringify(link_axis.valueOf()));
+    console.log("cross_data")
+    console.log(cross_data)
     J = math.subset(J, math.index([0,1,2],i-1),cross_data.valueOf()[0]);
     J = math.subset(J, math.index([3,4,5],i-1),a);
   }
@@ -197,12 +229,11 @@ function CalcVWerr(Target,Now_Link){//
   let Now_Link_rot = math.matrix(Now_Link.rot);
   let perr = math.subtract(Target.pos, Now_Link.pos);
   let Rerr = math.multiply(math.inv(Now_Link_rot),Target_rot);
-  //console.log(JSON.stringify(Rot2omega(Rerr).valueOf()));
   let werr = math.multiply(Now_Link_rot, Rot2omega(Rerr));
   let Error = math.zeros(6,1);
   Error = math.subset(Error,math.index([0,1,2],0),perr.valueOf());
   Error = math.subset(Error,math.index([3,4,5],0),werr.valueOf());
-  //return math.matrix([perr.valueOf(),werr.valueOf()]);
+  //return math.matrix(perr.valueOf(),werr.valueOf());
   return Error;
 }
 
