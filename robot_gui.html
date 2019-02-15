@@ -2,67 +2,82 @@
 <html>
     <head>
         <meta charset="utf-8"/>
-        <script src="./three.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/100/three.min.js"></script>
+        <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
         <script>
             <!-- 回転の中心位置の変更テスト -->
             window.addEventListener('load', init);
         
             function init() {
         
-              // サイズを指定
-              const width = 960;
-              const height = 540;
+            // サイズを指定
+            const width = 960;
+            const height = 540;
         
-              // レンダラーを作成
-              const renderer = new THREE.WebGLRenderer({
-                canvas: document.querySelector('#myCanvas')
-              });
-              renderer.setPixelRatio(window.devicePixelRatio);
-              renderer.setSize(width, height);
+            // レンダラーを作成
+            const renderer = new THREE.WebGLRenderer({
+              canvas: document.querySelector('#myCanvas')
+            });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(width, height);
         
-              // シーンを作成
-              const scene = new THREE.Scene();
+            // シーンを作成
+            const scene = new THREE.Scene();
         
-              // カメラを作成
-              const camera = new THREE.PerspectiveCamera(45, width / height);
-              camera.position.set(0, 0, +1000);
-              
-              //グループを作成
-              const group0 = new THREE.Group();
-              const group1 = new THREE.Group();
-              scene.add(group0);
-              scene.add(group1);
-              //座標軸を作成
-              let axis = new THREE.AxesHelper(1000);
-              axis.position.set(0,0,0);
-              scene.add(axis);
-              
-              // 箱を作成
-              const geometry = new THREE.BoxGeometry(200, 100, 100)
-              const cylindergeometry = new THREE.CylinderGeometry(50,50,100,100);
-              const material = new THREE.MeshNormalMaterial();
-              const box = new THREE.Mesh(geometry, material);
-              const box2 = new THREE.Mesh(geometry, material);
-              const joint = new THREE.Mesh(cylindergeometry, material);
-              box.position.set(100,0,0);//ローカル座標になる
-              box2.position.set(100,0,0);
-              joint.rotation.x += 90*3.14/180;
-              group0.add(box);
-              group1.add(box2);
-              group1.add(joint);
-              group0.add(group1);
-              group1.position.set(200,0,0);
-              group0.position.set(30,0,0);
-              //scene.add(box);
-              group0.rotation.z += 0.8;
-              group1.rotation.z -= 0.8;
-              tick();
+            // カメラを作成
+            const camera = new THREE.PerspectiveCamera(45, width / height);
+            camera.position.set(0, -100, 0);
+
+            const controls = new THREE.OrbitControls(camera);
+
+            //座標軸を作成
+            let axis = new THREE.AxesHelper(1000);
+            axis.position.set(0,0,0);
+            scene.add(axis);
+             
+            //グループを作成
+            //flag 0:x,1:y,2:z
+            //[x座標のデータ]
+            let groups = [];
+            let now_pos = [0,0,0]//x,y,z
+            let data_list = [[0.5,0.5,1],[1,0.5,1,2,0.5,0.5],[0.5,0.5,1,1,0.5,0.5],[0.5,0.5,1,1,0.5,0.5],[0.5,0.5,1,1,0.5,0.5],[0.5,0.5,1,1,0.5,0.5],[0.5,0.5,1,1,0.5,0.5]];
+            let pos_data = [[0,0,1],[1,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]];
+            let boxs = []
+            for(let i=0; i<6; i++){
+                groups.push(new THREE.Group());
+                scene.add(groups[i]);
+                let geometry = new THREE.BoxGeometry(data_list[i][0],data_list[i][1],data_list[i][2]);
+                let material = new THREE.MeshNormalMaterial();
+                if(i > 0){
+                    let cylindergeometry = new THREE.CylinderGeometry(data_list[i][4]/2,data_list[i][4]/2,data_list[i][5],100);
+                    let joint = new THREE.Mesh(cylindergeometry, material);
+                    switch(data_list[i][3]){
+                        case 2:
+                            joint.rotation.x += 90*Math.PI/180; 
+                    }
+                    groups[i].add(joint);
+                }
+                boxs.push(new THREE.Mesh(geometry, material));
+                boxs[i].position.set(pos_data[i][0]/2,pos_data[i][1]/2,pos_data[i][2]/2)
+                groups[i].add(boxs[i]);
+                if(i > 0){
+                    groups[i-1].add(groups[i]);
+                    groups[i].position.set(pos_data[i][0],pos_data[i][1],pos_data[i][2]);
+                }else{
+                    groups[i].position.set(0,0,0);
+                }
+                console.log("No."+i+"nowpos:"+now_pos);
+            }
+            
+            // 箱を作成
+            tick();
         
               // 毎フレーム時に実行されるループイベントです
               function tick() {
+                //groups[1].rotation.z = 20*Math.PI/180;
+                //groups[2].rotation.y = 90*Math.PI/180;
+                //groups[3].rotation.y = -90*Math.PI/180;
                 
-               //box.rotation.x += 0.01;
-                //group0.rotation.z += 0.01;
                 renderer.render(scene, camera); // レンダリング
         
                 requestAnimationFrame(tick);
