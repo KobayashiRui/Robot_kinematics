@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8"/>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/100/three.min.js"></script>
+        <script src="https://cdn.rawgit.com/mrdoob/three.js/master/examples/js/controls/OrbitControls.js"></script>
+        <script>
+            //6自由度ロボットアームのThree.jsの設定
+            class DOF6robotarmshow{
+                constructor(data_list,pos_data,scene){
+                    //グループを作成 ロボットアームのツリー構造
+                    this.groups = [];
+                    this.scene = scene;
+                    //グラフィック的な設定
+                    //[リンク部のデータ(x方向の長さ,y方向の長さ,z方向の長さ), リンク軸の向き(x:0 or y:1 or z:2), ジョイント(円柱)の直径,高さ(高さはy軸方向に伸びる) ]
+                    this.data_list = data_list;
+                    this.pos_data = pos_data;
+                    for(let i=0; i<7; i++){
+                        this.groups.push(new THREE.Group());
+                        this.scene.add(this.groups[i]);
+                        let geometry = new THREE.BoxGeometry(this.data_list[i][0],this.data_list[i][1],this.data_list[i][2]);
+                        let material = new THREE.MeshBasicMaterial({color: 0x6699FF});
+                    if(i > 0){
+                        let cylindergeometry = new THREE.CylinderGeometry(this.data_list[i][4]/2+0.01,this.data_list[i][4]/2+0.01,this.data_list[i][5]+0.2,100);
+                        let cylindermaterial = new THREE.MeshBasicMaterial({color: 0x34b334});
+                        let joint = new THREE.Mesh(cylindergeometry, cylindermaterial);
+                        switch(this.data_list[i][3]){
+                            case 2:
+                                joint.rotation.x += 90*Math.PI/180; 
+                        }
+                        this.groups[i].add(joint);
+                        }
+                    //boxs.push(new THREE.Mesh(geometry, material));
+                    let box = new THREE.Mesh(geometry,material);
+                    box.position.set(pos_data[i][0]/2,pos_data[i][1]/2,pos_data[i][2]/2)
+                    this.groups[i].add(box);
+                    if(i > 0){
+                        this.groups[i-1].add(this.groups[i]);
+                        this.groups[i].position.set(this.pos_data[i-1][0],this.pos_data[i-1][1],this.pos_data[i-1][2]);
+                    }else{
+                        this.groups[i].position.set(0,0,0);
+                    }
+                }
+            }
+                movearm(){
+                    this.groups[1].rotation.z += 0.01;
+                    this.groups[2].rotation.y += 0.01;
+                    this.groups[3].rotation.y += 0.01;
+                    this.groups[4].rotation.z += 0.01;
+                    this.groups[5].rotation.y += 0.01;
+                    this.groups[6].rotation.z += 0.01;
+
+                }
+            }
+            <!-- 回転の中心位置の変更テスト -->
+            window.addEventListener('load', init);
+        
+            function init() {
+        
+            // サイズを指定
+            const width = 960;
+            const height = 540;
+        
+            // レンダラーを作成
+            const renderer = new THREE.WebGLRenderer({
+              canvas: document.querySelector('#myCanvas')
+            });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(width, height);
+        
+            // シーンを作成
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color( 0xffffff);
+            // カメラを作成
+            const camera = new THREE.PerspectiveCamera(45, width / height);
+            camera.position.set(0, -20, 0);
+
+            const controls = new THREE.OrbitControls(camera);
+
+            //座標軸を作成
+            let axis = new THREE.AxesHelper(1000);
+            axis.position.set(0,0,0);
+            scene.add(axis);
+            
+            let data_list = [[0.5,0.5,1],[1,0.5,1,2,0.5,0.5],[0.5,0.5,1,1,0.5,0.5],[0.5,0.5,1,1,0.5,0.5],[0.5,0.5,1,2,0.5,0.5],[0.5,0.5,1,1,0.5,0.5],[0.5,0.5,1,2,0.5,0.5]];
+            let pos_data = [[0,0,1],[1,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1],[0,0,1]];
+            var robot_arm1 = new DOF6robotarmshow(data_list,pos_data,scene);
+            
+            // 箱を作成
+            tick();
+              // 毎フレーム時に実行されるループイベントです
+              function tick() {
+                /*
+                robot_arm1.groups[1].rotation.z += 0.01;
+                robot_arm1.groups[2].rotation.y += 0.01;
+                robot_arm1.groups[3].rotation.y += 0.01;
+                robot_arm1.groups[4].rotation.z += 0.01;
+                robot_arm1.groups[5].rotation.y += 0.01;
+                robot_arm1.groups[6].rotation.z += 0.01;
+                */
+                robot_arm1.movearm();
+                renderer.render(scene, camera); // レンダリング
+        
+                requestAnimationFrame(tick);
+              }
+            }
+        </script>
+    </head>
+
+    <body>
+       <p id="test">aaaa</p>
+        <input type="range" min="-90" max="90" value="0" id="slider">
+        <canvas id="myCanvas"></canvas>
+    </body>
+</html>
