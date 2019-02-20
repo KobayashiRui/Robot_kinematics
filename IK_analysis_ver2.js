@@ -124,8 +124,16 @@ class Dof6robotarm{
             
             let sin_angle_3 = Math.sin(angle_3);
             let cos_angle_3 = Math.cos(angle_3);
-            let A = Math.sqrt(Math.pow(p5x-cos_angle_1*this.linkLength[2],2) + 
-                    Math.pow(p5y-sin_angle_1*this.linkLength[2],2))
+            let A;
+            if(i < 4){
+                A = Math.sqrt(Math.pow(p5x-cos_angle_1*this.linkLength[2],2) + 
+                    Math.pow(p5y-sin_angle_1*this.linkLength[2],2));
+            }else{
+                A = -1 * (Math.sqrt(Math.pow(p5x-cos_angle_1*this.linkLength[2],2) + 
+                    Math.pow(p5y-sin_angle_1*this.linkLength[2],2)));
+            }
+            //let A = Math.sqrt(Math.pow(p5x-cos_angle_1*this.linkLength[2],2) + 
+            //        Math.pow(p5y-sin_angle_1*this.linkLength[2],2));
             let B = p5z-this.linkLength[1];
             let M = this.linkLength[3] + (this.linkLength[4]+this.linkLength[5])*cos_angle_3;
             let N = (this.linkLength[4]+this.linkLength[5])*sin_angle_3;
@@ -309,9 +317,9 @@ function Show_arm(link_list){
   }
 }
 
-var link_list = [1,1,1,1,1,1,0.5,0.1]
+var link_list = [1,1,1,1,1,1,1,1]
 var robotarm = new Dof6robotarm(linkLength=link_list);
-var target_pos = [0.5,0.5,3];
+var target_pos = [0.5,0.5,4];
 var target_rpy = [0,0,0];
 console.log("angle_data");
 var angle_data = robotarm.ikSolve(target_pos,target_rpy);
