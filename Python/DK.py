@@ -61,22 +61,42 @@ class Arm:
             
             before_joint_axis = link[1]
 
-    def Arm_Preview(self,angles):
-        for link in self.Links:
-            print(link.get_link_transform_matrix(0))
+    def Arm_Preview(self):
+        x_data = [0]
+        y_data = [0]
+        z_data = [0]
+
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        ax.set_xlim(-25, 25)
+        ax.set_ylim(-25, 25)
+        ax.set_zlim(0, 50)
+
+        result = self.transform_matrixs[0]
+        x_data.append(result[0][3])
+        y_data.append(result[1][3])
+        z_data.append(result[2][3])
+        for i in range(len(self.Links)-1):
+            result = np.matmul(result,self.transform_matrixs[i+1])
+            x_data.append(result[0][3])
+            y_data.append(result[1][3])
+            z_data.append(result[2][3])
+
+        ax.plot(x_data,y_data,z_data,marker="o",linestyle='-')
+        plt.show()
     
     def Get_Arm_Pos(self,angles):
-        transform_matrixs = []
+        self.transform_matrixs = []
         #各リンクの座標変換行列を取得する
         for i in range(len(self.Links)-1):
-            transform_matrixs.append(self.Links[i].get_link_transform_matrix(np.deg2rad(angles[i])))
-        transform_matrixs.append(self.Links[-1].get_link_transform_matrix())
+            self.transform_matrixs.append(self.Links[i].get_link_transform_matrix(np.deg2rad(angles[i])))
+        self.transform_matrixs.append(self.Links[-1].get_link_transform_matrix())
         
-        print(transform_matrixs)
+        print(self.transform_matrixs)
 
-        result = transform_matrixs[0]
+        result = self.transform_matrixs[0]
         for i in range(len(self.Links)-1):
-            result = np.matmul(result,transform_matrixs[i+1])
+            result = np.matmul(result,self.transform_matrixs[i+1])
         print(result)
 
 
@@ -88,8 +108,9 @@ if __name__ == "__main__":
     Link_Datas = [[ [0,0,10], 0],
                   [ [0,0,10], 1],
                   [ [0,0,10], 1],
-                  [ [0,0,1] , 2]]
+                  [ [0,0,5] , 2]]
     arm = Arm(Link_Datas)
-    arm.Get_Arm_Pos([0,90,-90])
+    arm.Get_Arm_Pos([45,90,-45])
+    arm.Arm_Preview()
 
     
